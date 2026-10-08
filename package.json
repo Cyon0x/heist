@@ -1,0 +1,57 @@
+{
+  "name": "heist",
+  "version": "1.0.0",
+  "private": true,
+  "description": "HEIST \u2014 competitive 1v1 onchain extraction game on Arc Mainnet",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "next dev -p 4320",
+    "dev:webpack": "next dev --webpack -p 4320",
+    "build": "next build --webpack",
+    "build:turbo": "next build",
+    "start": "next start -p 4320",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "game:server": "tsx server/index.ts",
+    "contract:build": "node scripts/forge.mjs build",
+    "contract:test": "node scripts/forge.mjs test",
+    "db:init": "node scripts/db-init.mjs",
+    "db:seed": "node scripts/seed.mjs",
+    "verify": "npm run typecheck && npm run lint && npm run test && npm run build",
+    "game:server:watch": "tsx watch server/index.ts"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.62.7",
+    "clsx": "2.1.1",
+    "framer-motion": "14.0.0",
+    "jose": "^6.1.0",
+    "next": "16.3.8",
+    "pg": "8.23.1",
+    "qrcode.react": "4.2.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "server-only": "^0.0.1",
+    "viem": "^2.40.0",
+    "wagmi": "^2.16.0",
+    "ws": "^8.18.0",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "4.3.3",
+    "@types/node": "^24.10.0",
+    "@types/pg": "^8.15.6",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "@types/ws": "^8.5.13",
+    "eslint": "^9.39.0",
+    "eslint-config-next": "16.3.8",
+    "tailwindcss": "4.3.3",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.0",
+    "vitest": "^5.0.3"
+  }
+}

@@ -1,0 +1,423 @@
+@import "tailwindcss";
+
+/* Component layer: utilities may override any of this, which is the point. */
+@layer components {
+
+  /* ==========================================================================
+     HEIST design system — "Vault District, 03:40".  See /DIRECTION.md
+     Every value below is derived from the concept, not from a framework default.
+     ========================================================================== */
+
+  :root {
+    color-scheme: dark;
+
+    /* Ground: the unlit facility. Deep blue-black, never #000, never zinc. */
+    --ground: #080b10;
+    --ground-2: #0c1118;
+    --ground-3: #090d13;
+    --surface: #111823;
+    --surface-2: #16202d;
+    --surface-3: #1b2735;
+
+    --rule: #1e2a39;
+    --rule-strong: #2c3b4e;
+
+    --ink: #e8edf5;
+    --ink-2: #97a3b6;
+    --ink-3: #6b7789;
+
+    /* The ONE act-now colour: the sodium service lamp above the vault door. */
+    --action: #ffa227;
+    --action-2: #ffbe63;
+    --action-ink: #1a1206;
+    --action-deep: #7a4a0d;
+    --action-soft: rgba(255, 162, 39, 0.12);
+
+    /* The security system's own light: intel, confirmed, ledger-settled. */
+    --signal: #6fd8e8;
+    --signal-deep: #1d5a66;
+    --signal-soft: rgba(111, 216, 232, 0.12);
+
+    /* Breach. Used for alarms, lockdown, defeat, and nothing else. */
+    --alarm: #ff4d5e;
+    --alarm-deep: #6e1f27;
+    --alarm-soft: rgba(255, 77, 94, 0.12);
+
+    --chamfer: 12px;
+    --chamfer-sm: 7px;
+    --clip-panel: polygon(
+      var(--chamfer) 0, 100% 0, 100% calc(100% - var(--chamfer)),
+      calc(100% - var(--chamfer)) 100%, 0 100%, 0 var(--chamfer)
+    );
+    --clip-panel-tr: polygon(
+      0 0, calc(100% - var(--chamfer)) 0, 100% var(--chamfer),
+      100% 100%, 0 100%
+    );
+    --clip-btn: polygon(
+      var(--chamfer-sm) 0, 100% 0, 100% calc(100% - var(--chamfer-sm)),
+      calc(100% - var(--chamfer-sm)) 100%, 0 100%, 0 var(--chamfer-sm)
+    );
+    --clip-tag: polygon(5px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%, 0 5px);
+
+    /* Type scale. Instrument register: hierarchy from weight, tracking, colour. */
+    --t-mono-xs: 0.6875rem;   /* 11px — the floor, stamped labels only */
+    --t-label: 0.75rem;       /* 12px — uppercase labels */
+    --t-meta: 0.8125rem;      /* 13px — meta */
+    --t-small: 0.875rem;      /* 14px */
+    --t-body: 1rem;           /* 16px */
+    --t-lede: clamp(1.0625rem, 1rem + 0.4vw, 1.25rem);
+    --t-h3: clamp(1.25rem, 1.1rem + 0.7vw, 1.6rem);
+    --t-h2: clamp(1.75rem, 1.3rem + 2vw, 2.9rem);
+    --t-h1: clamp(2.5rem, 1.6rem + 4vw, 4.5rem);
+    --t-display: clamp(2.6rem, 6.6vw, 6.75rem);
+
+    --sans: "Archivo", "Helvetica Neue", Arial, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+    --spring: linear(0, 0.42 9%, 0.84 21%, 1.02 33%, 1.05 41%, 1.01 55%, 0.99 70%, 1);
+    --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+    --shell-x: clamp(1rem, 4vw, 4.5rem);
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body { height: 100%; }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: var(--t-body);
+    line-height: 1.55;
+    font-synthesis-weight: none;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+  }
+
+  ::selection { background: var(--action); color: var(--action-ink); }
+
+  :focus-visible {
+    outline: 2px solid var(--signal);
+    outline-offset: 2px;
+  }
+
+  h1, h2, h3, h4 {
+    margin: 0;
+    font-weight: 700;
+    line-height: 1.02;
+    letter-spacing: -0.03em;
+    text-wrap: balance;
+  }
+
+  p { margin: 0; text-wrap: pretty; }
+
+  a { color: inherit; text-decoration: none; }
+
+  hr { border: 0; border-top: 1px solid var(--rule); margin: 0; }
+
+  /* ---------------------------------------------------------------- typography */
+
+  .mono {
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "zero" 1;
+  }
+
+  .label {
+    font-family: var(--mono);
+    font-size: var(--t-label);
+    font-weight: 500;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  .label-signal { color: var(--signal); }
+  .label-action { color: var(--action); }
+  .label-alarm { color: var(--alarm); }
+
+  .stencil {
+    font-stretch: 112%;
+    font-weight: 800;
+    letter-spacing: -0.035em;
+    text-transform: uppercase;
+    line-height: 0.92;
+  }
+
+  .numeral {
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+  }
+
+  /* Type-scale utilities. Declared here rather than as Tailwind arbitrary values
+     so the compiler cannot mistake `t-h2` for a colour. */
+  .t-display { font-size: var(--t-display); }
+  .t-h1 { font-size: var(--t-h1); }
+  .t-h2 { font-size: var(--t-h2); }
+  .t-h3 { font-size: var(--t-h3); }
+  .t-lede { font-size: var(--t-lede); }
+  .t-body { font-size: var(--t-body); }
+  .t-small { font-size: var(--t-small); }
+  .t-meta { font-size: var(--t-meta); }
+  .t-label { font-size: var(--t-label); }
+  .t-mono-xs { font-size: var(--t-mono-xs); }
+
+  /* ------------------------------------------------------------------- ground */
+
+  .ground-facility {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background:
+      radial-gradient(120% 80% at 50% -10%, rgba(111, 216, 232, 0.07), transparent 60%),
+      radial-gradient(90% 60% at 12% 110%, rgba(255, 162, 39, 0.055), transparent 62%),
+      linear-gradient(180deg, var(--ground-2) 0%, var(--ground) 46%, var(--ground-3) 100%);
+  }
+
+  .ground-facility::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(to right, rgba(44, 59, 78, 0.28) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(44, 59, 78, 0.28) 1px, transparent 1px);
+    background-size: 64px 64px;
+    mask-image: radial-gradient(90% 70% at 50% 34%, #000 10%, transparent 78%);
+    opacity: 0.5;
+  }
+
+  .grain {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* ------------------------------------------------------------------- panels */
+
+  .panel {
+    position: relative;
+    background: var(--rule);
+    clip-path: var(--clip-panel);
+    isolation: isolate;
+  }
+
+  .panel > .panel-inner {
+    position: absolute;
+    inset: 1px;
+    background: var(--surface);
+    clip-path: var(--clip-panel);
+    z-index: -1;
+  }
+
+  .panel-flat { background: var(--surface); }
+
+  /* Corner brackets — drawn, not decorated: they mark a live/selected object. */
+  .brackets::before,
+  .brackets::after {
+    content: "";
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border: 1px solid var(--rule-strong);
+    pointer-events: none;
+  }
+  .brackets::before { top: 6px; left: 6px; border-right: 0; border-bottom: 0; }
+  .brackets::after { bottom: 6px; right: 6px; border-left: 0; border-top: 0; }
+  .brackets-live::before, .brackets-live::after { border-color: var(--action); }
+  .brackets-signal::before, .brackets-signal::after { border-color: var(--signal); }
+
+  .stamp {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    padding: 0.25em 0.6em;
+    border: 1px dashed var(--rule-strong);
+    font-family: var(--mono);
+    font-size: var(--t-mono-xs);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    clip-path: var(--clip-tag);
+  }
+  .stamp-live { border-color: var(--action-deep); color: var(--action); }
+  .stamp-signal { border-color: var(--signal-deep); color: var(--signal); }
+  .stamp-alarm { border-color: var(--alarm-deep); color: var(--alarm); }
+
+  /* ------------------------------------------------------------------ buttons */
+
+  .btn {
+    --btn-bg: var(--surface-2);
+    --btn-ink: var(--ink);
+    --btn-edge: var(--rule-strong);
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6em;
+    min-height: 44px;
+    padding: 0.75rem 1.35rem;
+    background: var(--btn-edge);
+    clip-path: var(--clip-btn);
+    border: 0;
+    color: var(--btn-ink);
+    font-family: var(--sans);
+    font-size: var(--t-small);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: color 140ms var(--ease-out), background-color 140ms var(--ease-out);
+  }
+  .btn::before {
+    content: "";
+    position: absolute;
+    inset: 1px;
+    z-index: -1;
+    background: var(--btn-bg);
+    clip-path: var(--clip-btn);
+    transition: background-color 140ms var(--ease-out);
+  }
+  .btn:hover { --btn-edge: var(--ink-3); }
+  .btn:active { transform: translateY(1px); }
+  .btn[disabled], .btn[aria-disabled="true"] {
+    cursor: not-allowed;
+    --btn-bg: var(--ground-2);
+    --btn-ink: var(--ink-3);
+    --btn-edge: var(--rule);
+  }
+
+  .btn-action { --btn-bg: var(--action); --btn-ink: var(--action-ink); --btn-edge: var(--action-2); }
+  .btn-action:hover { --btn-bg: var(--action-2); --btn-edge: #fff; }
+
+  .btn-signal { --btn-bg: var(--signal); --btn-ink: #04161a; --btn-edge: #a6ecf5; }
+
+  .btn-ghost { --btn-bg: transparent; --btn-edge: var(--rule-strong); --btn-ink: var(--ink-2); }
+  .btn-ghost:hover { --btn-ink: var(--ink); --btn-edge: var(--ink-3); }
+
+  .btn-sm { min-height: 34px; padding: 0.4rem 0.85rem; font-size: var(--t-meta); }
+
+  /* ------------------------------------------------------------------- fields */
+
+  .field {
+    display: block;
+    width: 100%;
+    min-height: 44px;
+    padding: 0.7rem 0.9rem;
+    background: var(--ground-2);
+    border: 1px solid var(--rule-strong);
+    clip-path: var(--clip-tag);
+    color: var(--ink);
+    font-family: var(--mono);
+    font-size: var(--t-small);
+  }
+  .field::placeholder { color: var(--ink-3); }
+  .field:focus { border-color: var(--signal); outline: none; }
+  .field[aria-invalid="true"] { border-color: var(--alarm); }
+
+  /* ------------------------------------------------------------------ formats */
+
+  .chamfer-img { clip-path: var(--clip-panel); }
+
+  .hairline {
+    height: 1px;
+    background: var(--rule);
+  }
+
+  .hatch {
+    background-image: repeating-linear-gradient(
+      -45deg, transparent 0 5px, rgba(44, 59, 78, 0.55) 5px 6px
+    );
+  }
+
+  /* ------------------------------------------------------------------- layout */
+
+  .shell { width: 100%; max-width: 1560px; margin-inline: auto; padding-inline: var(--shell-x); }
+
+  .scene { padding-block: clamp(3.5rem, 9vw, 8.5rem); }
+
+.scene-index {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.75rem 1rem;
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 0.85rem;
+  margin-bottom: clamp(1.75rem, 4vw, 3rem);
+}
+
+  /* ------------------------------------------------------------------ motion */
+
+  @media (prefers-reduced-motion: no-preference) {
+    .enter {
+      animation: enter 520ms var(--ease-out) both;
+    }
+    .retract { animation: retract 900ms var(--ease-out) both; }
+  }
+
+  @keyframes enter {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes retract {
+    from { opacity: 0; transform: translateY(28px) scale(0.985); }
+    to { opacity: 1; transform: none; }
+  }
+
+  @keyframes blink {
+    0%, 45% { opacity: 1; }
+    55%, 100% { opacity: 0.18; }
+  }
+  .blink { animation: blink 1.6s steps(1, end) infinite; }
+
+@keyframes sweep {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.sweep { animation: sweep 7s linear infinite; transform-origin: 50% 50%; }
+
+@keyframes indeterminate {
+  from { transform: translateX(-110%); }
+  to { transform: translateX(320%); }
+}
+.indeterminate { animation: indeterminate 1.35s var(--ease-out) infinite; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+    }
+  }
+
+  /* ---------------------------------------------------------- forced colours */
+
+  @media (forced-colors: active) {
+    .btn, .field, .panel, .stamp { border: 1px solid ButtonBorder; }
+    .btn:focus-visible, .field:focus-visible { outline: 2px solid Highlight; }
+  }
+
+  /* ------------------------------------------------------------- scrollbars */
+
+  * { scrollbar-width: thin; scrollbar-color: var(--rule-strong) transparent; }
+  *::-webkit-scrollbar { width: 10px; height: 10px; }
+  *::-webkit-scrollbar-track { background: var(--ground-2); }
+  *::-webkit-scrollbar-thumb { background: var(--rule-strong); border: 2px solid var(--ground-2); }
+
+  /* Tailwind utility bridge — a handful of layout primitives only. */
+  @layer utilities {
+    .clip-panel { clip-path: var(--clip-panel); }
+    .clip-btn { clip-path: var(--clip-btn); }
+    .clip-tag { clip-path: var(--clip-tag); }
+  }
+
+  /* The arena canvas. A crosshair only where a mouse exists. */
+  .arena-canvas { cursor: crosshair; }
+  @media (pointer: coarse) { .arena-canvas { cursor: default; } }
+}
