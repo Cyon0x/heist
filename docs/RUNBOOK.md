@@ -88,7 +88,23 @@ READY → COUNTDOWN → ACTIVE → (CORE_STOLEN | EXTRACTION) → MATCH_COMPLETE
 
 Invalid transitions throw in `store.ts`; the API discovers a legal path rather than writing a
 status directly. If a game server report never arrives, the match stays where it is and
-`/api/cron/maintenance` sweeps stale queue entries and expiring arenas every ten minutes.
+`/api/cron/maintenance` reaps stale queue entries and expiring arenas.
+
+### Queue liveness
+
+A queue entry is matchable only while its `heartbeat_at` is inside a 90-second window, and the
+heartbeat is refreshed by the waiting client's own poll — the poll literally means "still here".
+That window has to tolerate a **backgrounded browser tab**, where timers are throttled to roughly
+one tick a minute. Two consequences worth keeping in mind if you touch this:
+
+- If the client stops polling (closed tab, dead network) the entry ages out, so a live player is
+  never matched against a ghost who has gone away.
+- If the entry does age out anyway, the poll sees `state: "idle"` and silently re-enqueues instead
+  of dumping the player back to the lobby. A search is also capped at three minutes, after which
+  the UI offers a real `NO OPPONENT FOUND` state with retry.
+
+The Vercel cron is a daily belt-and-braces cleanup, not the mechanism. Vercel Hobby refuses anything
+faster than once a day, and correctness must not depend on the plan.
 
 - **Game server down** — matches in flight are lost; clients see `CONNECTION LOST`, the match is not
   settled, and no money moves. Restart the server and the rooms rebuild from client reconnects.

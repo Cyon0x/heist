@@ -14,7 +14,10 @@ import { useMe } from "@/lib/hooks/use-me";
 import { useSession } from "@/lib/hooks/use-session";
 import { useArcBalance } from "@/lib/hooks/use-arc-balance";
 
-type Phase = "idle" | "searching" | "matched";
+type Phase = "idle" | "searching" | "matched" | "no-opponent";
+
+/** Give up on a search rather than spinning forever (§53). */
+const SEARCH_LIMIT_MS = 180_000;
 
 interface Opponent {
   username: string;
@@ -97,7 +100,14 @@ function GlobalMatch() {
     }
     const started = Date.now();
     const tick = async () => {
-      setElapsed(Math.floor((Date.now() - started) / 1000));
+      const waited = Date.now() - started;
+      setElapsed(Math.floor(waited / 1000));
+      if (waited > SEARCH_LIMIT_MS) {
+        stopPolling();
+        await fetch("/api/matchmaking", { method: "DELETE", credentials: "same-origin" }).catch(() => {});
+        setPhase("no-opponent");
+        return;
+      }
       const res = await fetch("/api/matchmaking", { credentials: "same-origin" });
       if (!res.ok) return;
       const body = await res.json();
@@ -107,12 +117,31 @@ function GlobalMatch() {
         setMatchId(body.match.matchId);
         setPhase("matched");
       } else if (body.state === "idle") {
-        setPhase("idle");
+        // Our entry aged out — a backgrounded tab throttles its timers well past
+        // the queue's freshness window, and a network blip looks the same. Re-arm
+        // instead of dropping the player back to the lobby mid-search.
+        const again = await fetch("/api/matchmaking", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          credentials: "same-origin",
+          body: JSON.stringify({ stake }),
+        }).catch(() => null);
+        if (!again || !again.ok) {
+          stopPolling();
+          setPhase("idle");
+          return;
+        }
+        const retry = await again.json();
+        if (retry.state === "matched") {
+          setOpponent(retry.match.opponent);
+          setMatchId(retry.match.matchId);
+          setPhase("matched");
+        }
       }
     };
     pollRef.current = window.setInterval(tick, 1600);
     return stopPolling;
-  }, [phase, stopPolling]);
+  }, [phase, stake, stopPolling]);
 
   const cancel = useCallback(async () => {
     await fetch("/api/matchmaking", { method: "DELETE", credentials: "same-origin" });
@@ -216,18 +245,38 @@ function GlobalMatch() {
             />
           </div>
           <div className="text-center">
-            <div className={`stencil t-h3 ${phase === "searching" ? "text-[var(--action)]" : ""}`}>
-              {phase === "searching" ? "Searching globally…" : "Ready to deploy"}
+            <div
+              className={`stencil t-h3 ${
+                phase === "searching" ? "text-[var(--action)]" : phase === "no-opponent" ? "text-[var(--alarm)]" : ""
+              }`}
+            >
+              {phase === "searching"
+                ? "Searching globally…"
+                : phase === "no-opponent"
+                  ? "No opponent found"
+                  : "Ready to deploy"}
             </div>
             <p className="mono mt-2 t-mono-xs text-[var(--ink-3)]">
               {phase === "searching"
                 ? `${String(Math.floor(elapsed / 60)).padStart(2, "0")}:${String(elapsed % 60).padStart(2, "0")} elapsed${queued !== null ? ` · ${queued} in queue` : ""}`
-                : "Pick a stake and confirm your entry."}
+                : phase === "no-opponent"
+                  ? `Nobody matched $${stake} in three minutes. Try another stake, or open a friend arena.`
+                  : "Pick a stake and confirm your entry."}
             </p>
             {phase === "searching" && (
               <button className="btn btn-ghost btn-sm mt-5" onClick={() => void cancel()}>
                 Cancel search
               </button>
+            )}
+            {phase === "no-opponent" && (
+              <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
+                <button className="btn btn-action btn-sm" onClick={() => { setElapsed(0); void search(); }}>
+                  Search again
+                </button>
+                <Link href="/play/friend" className="btn btn-ghost btn-sm">
+                  Friend arena
+                </Link>
+              </div>
             )}
           </div>
         </div>

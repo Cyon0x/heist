@@ -59,6 +59,13 @@ export interface Store {
   liveMatchFor(userId: string): Promise<MatchRow | null>;
   /** How many players are currently waiting for an opponent. */
   queuedCount(): Promise<number>;
+  /**
+   * "I am still here." A waiting client polls the queue every couple of seconds,
+   * and that poll is what keeps the entry matchable. Without it an entry goes
+   * stale after 45 s and the player waits forever for a match they can no longer
+   * be given.
+   */
+  touchQueue(userId: string): Promise<void>;
   /** Drop queue entries older than `ms`. Returns how many were removed. */
   sweepQueue(ms: number): Promise<number>;
 }
@@ -291,6 +298,10 @@ class MemoryStore implements Store {
     return first[0];
   }
   async queuedCount() { return this.queue.size; }
+  async touchQueue(userId: string) {
+    const entry = this.queue.get(userId);
+    if (entry) entry.at = nowIso();
+  }
   async sweepQueue(ms: number) {
     let n = 0;
     const cutoff = Date.now() - ms;
@@ -564,7 +575,7 @@ class PostgresStore implements Store {
     const rows = await this.q<{ user_id: string }>(
       `DELETE FROM queue WHERE user_id = (
          SELECT user_id FROM queue
-         WHERE stake_units = $1 AND user_id <> $2 AND heartbeat_at > now() - interval '45 seconds'
+         WHERE stake_units = $1 AND user_id <> $2 AND heartbeat_at > now() - interval '90 seconds'
          ORDER BY enqueued_at ASC
          FOR UPDATE SKIP LOCKED
          LIMIT 1
@@ -573,8 +584,11 @@ class PostgresStore implements Store {
   }
   async queuedCount() {
     const rows = await this.q<{ n: string }>(
-      `SELECT count(*)::text AS n FROM queue WHERE heartbeat_at > now() - interval '45 seconds'`);
+      `SELECT count(*)::text AS n FROM queue WHERE heartbeat_at > now() - interval '90 seconds'`);
     return Number(rows[0]?.n ?? 0);
+  }
+  async touchQueue(userId: string) {
+    await this.q(`UPDATE queue SET heartbeat_at = now() WHERE user_id = $1`, [userId]);
   }
   async sweepQueue(ms: number) {
     const rows = await this.q<{ user_id: string }>(

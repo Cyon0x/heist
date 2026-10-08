@@ -139,6 +139,11 @@ which reads better in SQL than through an ORM's escape hatch.
   UI shows an `EPHEMERAL STORE` badge whenever it is in use, so it can never be mistaken for
   production.
 
+Matchmaking lives in the same database as a `queue` table. `claimOpponent` is a single
+`DELETE … WHERE user_id = (SELECT … FOR UPDATE SKIP LOCKED LIMIT 1)`, so two simultaneous claims
+can never take the same opponent, and only entries whose heartbeat is inside a 90-second window are
+candidates. The heartbeat is refreshed by the waiting client's poll — see `RUNBOOK.md` §6.
+
 ## 6. Auth
 
 Three ways in, one identity:

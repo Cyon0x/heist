@@ -41,6 +41,11 @@ export async function GET() {
   if (live) return NextResponse.json({ state: "matched", match: await describe(ctx, live.id) });
   const queued = await ctx.store.getQueueEntry(ctx.session.userId);
   if (queued) {
+    // The poll *is* the heartbeat: while a client keeps asking, its entry stays
+    // matchable. Stop asking (closed tab, dead network) and it ages out in 45 s
+    // instead of sitting in the queue to be matched against a real player who
+    // would then be left waiting for an opponent that never arrives.
+    await ctx.store.touchQueue(ctx.session.userId);
     return NextResponse.json({
       state: "searching",
       stakeUnits: queued.stakeUnits,

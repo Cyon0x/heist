@@ -13,3 +13,4 @@ contracts/out
 contracts/cache
 coverage
 .vercel
+.env*
