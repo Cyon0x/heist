@@ -7,7 +7,7 @@ import { configuredProviders } from "@/lib/auth/oauth";
 import { buildMessage } from "@/lib/arc/siwe";
 import { verifyWalletSignature } from "@/lib/auth/wallet-auth";
 import { clearSessionCookie, currentSession, setSessionCookie } from "@/lib/auth/session";
-import { isEscrowConfigured } from "@/lib/env";
+import { isEscrowConfigured, serverEnv } from "@/lib/env";
 import { ARC, ARC_CHAIN_ID, ARC_EXPLORER } from "@/lib/arc/chain";
 
 export const dynamic = "force-dynamic";
@@ -28,6 +28,11 @@ async function payload() {
       x: configuredProviders().includes("x"),
       managedWallet: true,
       escrow: isEscrowConfigured(),
+      // Without a game server there is no shared simulation, so two people on
+      // different machines cannot actually play each other. The UI has to be
+      // able to say that rather than silently giving each player their own
+      // private copy of the match.
+      realtime: Boolean(serverEnv().gameServerUrl && serverEnv().gameServerSecret),
       store: store.driver,
     },
     network: { chainId: ARC_CHAIN_ID, name: ARC.name, explorer: ARC_EXPLORER },

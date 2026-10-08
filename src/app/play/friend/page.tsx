@@ -38,6 +38,7 @@ function FriendArena() {
   const { data: session } = useSession();
   const { data: me } = useMe();
   const escrow = Boolean(session?.capabilities.escrow);
+  const realtime = Boolean(session?.capabilities.realtime);
 
   const [stake, setStake] = useState(0);
   const [arena, setArena] = useState<Arena | null>(null);
@@ -302,6 +303,14 @@ function FriendArena() {
           <p className="mono mt-3 t-mono-xs leading-relaxed text-[var(--ink-3)]">
             You get an arena id, an invite link and a QR code. Nothing is staked until both of you are in.
           </p>
+          {!realtime && (
+            <p className="mono mt-4 border-l-2 border-[var(--signal)] pl-3 t-mono-xs leading-relaxed text-[var(--signal)]">
+              No authoritative game server is configured on this deployment. An arena therefore links
+              two tabs in <em>this</em> browser only — a link or QR scanned on another device will not
+              join the same match. Set <span className="text-[var(--ink-2)]">GAME_SERVER_URL</span> (and
+              run <span className="text-[var(--ink-2)]">npm run game:server</span>) to play across machines.
+            </p>
+          )}
         </div>
 
         <Panel flat className="border border-[var(--rule)] p-6">

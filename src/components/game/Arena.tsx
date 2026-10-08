@@ -357,7 +357,12 @@ export function Arena(props: ArenaProps) {
   const done = hud?.phase === "COMPLETE";
 
   const authorityLabel = useMemo(() => {
-    const base = authority === "SERVER" ? "SERVER AUTHORITY" : authority === "LOCAL" ? "LOCAL AUTHORITY" : "PRACTICE";
+    const base =
+      authority === "SERVER"
+        ? "SERVER AUTHORITY"
+        : authority === "LOCAL"
+          ? "LOCAL AUTHORITY · SAME MACHINE"
+          : "PRACTICE";
     return props.stakeUsdc ? `${base} · $${props.stakeUsdc}` : base;
   }, [authority, props.stakeUsdc]);
 

@@ -15,7 +15,15 @@ export interface SessionUser {
 export interface SessionResponse {
   session: null | { userId: string; username: string; address: string | null; provider: string; acceptedTermsAt: string | null };
   user: SessionUser | null;
-  capabilities: { google: boolean; x: boolean; managedWallet: boolean; escrow: boolean; store: "postgres" | "memory" };
+  capabilities: {
+    google: boolean;
+    x: boolean;
+    managedWallet: boolean;
+    escrow: boolean;
+    /** True when an authoritative game server is configured for real 1v1. */
+    realtime: boolean;
+    store: "postgres" | "memory";
+  };
   network: { chainId: number; name: string; explorer: string };
 }
 
