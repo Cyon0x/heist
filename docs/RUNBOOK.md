@@ -131,3 +131,20 @@ account disappears on restart. Never leave production in that state.
   process, loads its own `.env`. Put it behind TLS and give the browser a `wss://` URL in
   `GAME_SERVER_URL`. It holds no database credentials — only the ticket key and the report secret.
 - **Database** — Neon. `npm run db:init` applies the schema; migrations are idempotent.
+
+## 9. OAuth callback URLs
+
+Google and X build `redirect_uri` from `APP_URL`, so every origin the app is reachable at must be
+registered on the OAuth client. Missing entries fail at the provider with `redirect_uri_mismatch`,
+not in HEIST.
+
+Registered for production (`APP_URL=https://heist-mauve.vercel.app`):
+
+```
+https://heist-mauve.vercel.app/api/auth/oauth/google/callback
+https://heist-mauve.vercel.app/api/auth/oauth/x/callback
+```
+
+Add `http://localhost:4320/api/auth/oauth/{google,x}/callback` to the same clients for local work.
+Wallet sign-in does not depend on any of this — it verifies an EIP-191 signature and works on any
+origin.

@@ -8,6 +8,10 @@ run on a 4-minute clock; the winner takes 90% of the pot and the protocol takes 
 
 The game is the product. Blockchain is the payout rail underneath it.
 
+**Live:** https://heist-mauve.vercel.app — web app on Vercel, Postgres on Neon. Practice and free
+friend arenas are playable now; staking is disabled until escrow is deployed (`docs/RUNBOOK.md`).
+Social sign-in additionally needs the two callback URLs registered in §9 of that runbook.
+
 ---
 
 ## What is real right now
